@@ -1,7 +1,7 @@
 RESOURCES := $(shell find ../expyrimenter -name \*.py)
 
 tests:
-	@PYTHONPATH="$$PYTHON_PATH:.." python3 -m unittest
+	@python3 -m unittest
 
 help:
 	@echo '     no target: runs tests target'
@@ -10,7 +10,7 @@ help:
 	@echo ' coverage-html: generates report in coverage_html/index.html'
 	@echo '         clean: deletes coverage data and html report'
 
-coverage: .coverage FORCE
+coverage: .coverage
 	@PREFIX="$$(readlink -e $$(dirname $$(pwd)))/expyrimenter/"; \
 	        coverage report \
 	        | sed "s|$$PREFIX||" \
@@ -19,6 +19,7 @@ coverage: .coverage FORCE
 	        | sed "s/^TOTAL \{$${#PREFIX}\}/TOTAL/"
 
 .coverage: test_*.py $(RESOURCES)
+	-@ rm -f .coverage
 	@export PYTHONPATH="$$PYTHON_PATH:.."; \
 	for test in test_*.py; do \
 		coverage run -a $$test; \
@@ -29,5 +30,3 @@ coverage-html: .coverage
 
 clean:
 	rm -rf coverage_html .coverage __pycache__
-
-FORCE:

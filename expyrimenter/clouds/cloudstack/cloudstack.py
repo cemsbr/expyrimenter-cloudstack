@@ -1,6 +1,6 @@
 from .api import API
 from .statemonitor import StateMonitorProcess
-from expyrimenter import Executor, SSH
+from expyrimenter.core import Executor, SSH
 from time import sleep
 import threading
 import logging

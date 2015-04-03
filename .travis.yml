@@ -4,7 +4,6 @@ branches:
         - master
         - pre-master
 python:
-  - "3.2"
   - "3.3"
   - "3.4"
 install:

@@ -7,7 +7,7 @@
 #   - pep8 compliance
 #   - documentation
 
-from expyrimenter import Config
+from expyrimenter.core import Config
 from urllib.parse import quote_plus
 from urllib.request import urlopen
 from urllib.error import HTTPError, URLError

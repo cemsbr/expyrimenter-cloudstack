@@ -2,6 +2,8 @@ import unittest
 from expyrimenter.clouds.cloudstack import API
 from unittest.mock import patch
 from urllib.error import HTTPError
+import sys
+import os
 
 
 @patch('expyrimenter.clouds.cloudstack.api.json')
@@ -59,8 +61,14 @@ class TestAPI(unittest.TestCase):
     @patch('expyrimenter.clouds.cloudstack.api.urlopen',
            side_effect=HTTPError(*([None] * 5)))
     def test_urlopen_exception(self, urlopen, json):
-        api = self._get_api()
-        self.assertRaises(HTTPError, api.a_test_command)
+        stderr_bak = sys.stderr
+        with open(os.devnull, 'w') as devnull:
+            sys.stderr = devnull
+
+            api = self._get_api()
+            self.assertRaises(HTTPError, api.a_test_command)
+
+        sys.stderr = stderr_bak
 
     @patch('expyrimenter.clouds.cloudstack.api.Config')
     def _get_api(self, config_class):
