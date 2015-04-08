@@ -23,7 +23,7 @@ class SignedAPICall():
         self.url = api_url
         self.key = api_key
         self.secret = api_secret
-        self._logger = logging.getLogger('cloudstack.api')
+        self._logger = logging.getLogger('cloudstack')
 
     def request(self, args):
         args['apiKey'] = self.key

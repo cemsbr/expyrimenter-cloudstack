@@ -1,6 +1,6 @@
 from .api import API
 from .statemonitor import StateMonitorProcess
-from expyrimenter.core import Executor, SSH
+from expyrimenter.core import Executor, SSH, Function
 from time import sleep
 import threading
 import logging
@@ -55,7 +55,7 @@ class CloudStack:
             s._logger.info('Starting %s' % name)
             try:
                 vm_id = s.get_id(name)
-                s._submit_sm_task(start_vm, 'start VM', name, vm_id)
+                s._submit_sm_task(start_vm, 'start VM ' + name, name, vm_id)
             except VMNotFound:
                 pass  # do not quit the loop
 
@@ -64,9 +64,11 @@ class CloudStack:
         for name in names:
             try:
                 vm_id = s.get_id(name)
-                s.executor.run_function(stop_vm, 'stop VM', name, vm_id)
+                f = Function(stop_vm, name, vm_id)
+                f.title = 'stop VM ' + name
+                s.executor.run(f)
             except VMNotFound:
-                pass    # do not quit the loop
+                pass  # do not quit the loop
 
     def get_deploy_params(s, name):
         params = {}
@@ -83,7 +85,7 @@ class CloudStack:
         if kwargs:
             params.update(kwargs)
         name = params['name']
-        s._submit_sm_task(deploy_vm, '%s deployment' % name, params)
+        s._submit_sm_task(deploy_vm, 'deploy ' + name, params)
 
     def deploy_like(s, existent, new, **kwargs):
         params = s.get_deploy_params(existent)
@@ -109,8 +111,11 @@ class CloudStack:
             StateMonitorProcess.start()
 
         states = StateMonitorProcess.get_states()
+        # TODO why not append()?
         args += (states,)
-        future = s.executor.run_function(fn, title, *args, **kwargs)
+        f = Function(fn, *args, **kwargs)
+        f.title = title
+        future = s.executor.run(f)
         future.add_done_callback(s._sm_task_done)
 
         return future
@@ -134,7 +139,7 @@ class CloudStack:
 def stop_vm(name, vm_id):
     api = API()
     api.stopVirtualMachine(id=vm_id)
-    msg = 'Sent %s stop request.' % name
+    msg = 'sent stop request for {}.'.format(name)
     logging.getLogger('cloudstack').debug(msg)
 
 
@@ -142,7 +147,7 @@ def start_vm(name, vm_id, states):
     api = API()
     api.startVirtualMachine(id=vm_id)
     wait_ssh(name, states)
-    msg = '%s is up.' % name
+    msg = name + ' is up.'
     logging.getLogger('cloudstack').info(msg)
 
 
@@ -151,11 +156,11 @@ def deploy_vm(params, states):
     api.deployVirtualMachine(**params)
     log = logging.getLogger('cloudstack')
     if 'startvm' in params and params['startvm'] is False:
-        msg = '%s is deployed.' % params['name']
+        msg = params['name'] + '{} deployed.'
         log.debug(msg)
     else:
         wait_ssh(params['name'], states)
-        msg = '%s is ready for SSH.' % params['name']
+        msg = params['name'] + ' ready for SSH.'
         log.info(msg)
 
 
