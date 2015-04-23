@@ -3,9 +3,8 @@
 # Changes:
 #   - ported to python3
 #   - support for config.ini (url, key, secret)
-#   - method calls work with no parameters
+#   - method calls work without any parameter
 #   - pep8 compliance
-#   - documentation
 
 from expyrimenter.core import Config
 from urllib.parse import quote_plus
@@ -23,7 +22,6 @@ class SignedAPICall():
         self.url = api_url
         self.key = api_key
         self.secret = api_secret
-        self._logger = logging.getLogger('cloudstack')
 
     def request(self, args):
         args['apiKey'] = self.key
@@ -66,6 +64,7 @@ class API(SignedAPICall):
     def __init__(self):
         cfg = Config('cloudstack')
         super().__init__(cfg.get('url'), cfg.get('key'), cfg.get('secret'))
+        self._logger = logging.getLogger('cloudstack.api')
 
     def __getattr__(self, name):
         def handlerFunction(*args, **kwargs):
@@ -77,15 +76,17 @@ class API(SignedAPICall):
                                 "api.command(param1='value1', param2='value2'"
                                 ', ...)')
             return self._make_request(name, {})
+
         return handlerFunction
 
     def _http_get(self, url):
         self._logger.debug(url)
         try:
             response = urlopen(url)
-        except (HTTPError, URLError):
-            self._logger.error('HTTP GET Error "%s"' % url)
-            raise
+        except (HTTPError, URLError) as e:
+            extra_msg = 'URL was "{}"'.format(url)
+            self._logger.failure(e, extra_msg=extra_msg)
+            raise e
 
         return response.read()
 

@@ -8,7 +8,6 @@ import os
 
 @patch('expyrimenter.clouds.cloudstack.api.json')
 class TestAPI(unittest.TestCase):
-
     @patch('expyrimenter.clouds.cloudstack.api.API._http_get')
     def test_url_begins_with_api_url(self, get, json):
         api = self._get_api()
@@ -75,6 +74,7 @@ class TestAPI(unittest.TestCase):
         config = config_class.return_value
         config.get.side_effect = lambda value: value
         return API()
+
 
 if __name__ == '__main__':
     unittest.main()
