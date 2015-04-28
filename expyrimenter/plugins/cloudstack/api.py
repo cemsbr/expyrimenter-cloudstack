@@ -6,7 +6,7 @@
 #   - method calls work without any parameter
 #   - pep8 compliance
 
-from expyrimenter.core import Config
+from expyrimenter.core import Config, ExpyLogger
 from urllib.parse import quote_plus
 from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
@@ -14,7 +14,6 @@ import base64
 import hashlib
 import hmac
 import json
-import logging
 
 
 class SignedAPICall():
@@ -64,7 +63,7 @@ class API(SignedAPICall):
     def __init__(self):
         cfg = Config('cloudstack')
         super().__init__(cfg.get('url'), cfg.get('key'), cfg.get('secret'))
-        self._logger = logging.getLogger('cloudstack.api')
+        self._logger = ExpyLogger.getLogger('cloudstack.api')
 
     def __getattr__(self, name):
         def handlerFunction(*args, **kwargs):

@@ -2,8 +2,7 @@ from .api import API
 from .statemonitor import StateMonitorProcess
 from time import sleep
 import threading
-import logging
-from expyrimenter.core import SSH, Executor, Function
+from expyrimenter.core import SSH, Executor, Function, ExpyLogger
 
 
 class VMNotFound(Exception):
@@ -11,6 +10,9 @@ class VMNotFound(Exception):
 
 
 class CloudStack:
+    """Currently, only API calls are blocking. To block everything, call wait()
+    in the executor attribute.
+    """
     _id_cache = None
 
     def __init__(self, executor=None, api=None, logger_name=None):
@@ -24,7 +26,7 @@ class CloudStack:
         self.executor = executor
         self._api = api
         self._logger_name = logger_name
-        self._logger = logging.getLogger(name=logger_name)
+        self._logger = ExpyLogger.getLogger(name=logger_name)
 
         # sm vars are related to State Monitor
         self._sm_lock = threading.Lock()
@@ -57,7 +59,7 @@ class CloudStack:
         names = self._ensure_list(names)
         for vm in names:
             title = 'start VM ' + vm
-            self._logger.start(title, level=logging.INFO)
+            self._logger.start(title, level=ExpyLogger.INFO)
             try:
                 vm_id = self.get_id(vm)
                 self._submit_sm_task(CloudStack.start_vm, title, vm, vm_id)

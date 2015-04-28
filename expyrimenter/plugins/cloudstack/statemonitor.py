@@ -1,8 +1,8 @@
-from . import API
+from .api import API
 from multiprocessing import Manager, Process
 from time import sleep
 import signal
-import logging
+from expyrimenter.core import ExpyLogger
 
 
 class StateMonitor:
@@ -12,7 +12,7 @@ class StateMonitor:
         self._states_proxy = states_proxy
         self._local_states = {}
         self._api = API()
-        self._logger = logging.getLogger('cloudstack.statemonitor')
+        self._logger = ExpyLogger.getLogger('cloudstack.statemonitor')
         self.title = '{} {}'.format(type(self).__name__, id(self))
         self._logger.start(self.title)
 
