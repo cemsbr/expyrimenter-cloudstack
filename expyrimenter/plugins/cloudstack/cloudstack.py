@@ -59,7 +59,6 @@ class CloudStack:
         names = self._ensure_list(names)
         for vm in names:
             title = 'start VM ' + vm
-            self._logger.start(title, level=ExpyLogger.INFO)
             try:
                 vm_id = self.get_id(vm)
                 self._submit_sm_task(CloudStack.start_vm, title, vm, vm_id)

@@ -20,7 +20,7 @@ class StateMonitor:
         while not StateMonitor._stop:
             self._monitor_states_once()
             sleep(interval)
-        self._logger.end(self.title)
+        self._logger.end(self.title, level=ExpyLogger.INFO)
 
     @classmethod
     def stop(cls):
