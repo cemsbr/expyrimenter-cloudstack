@@ -83,9 +83,10 @@ class API(SignedAPICall):
         try:
             response = urlopen(url)
         except (HTTPError, URLError) as e:
-            extra_msg = 'URL was "{}"'.format(url)
-            self._logger.failure(e, title='HTTP Get', exception=e,
-                                 extra_msg=extra_msg)
+            msg = 'URL was "%s"'
+            args = [url]
+            self._logger.failure(title='HTTP Get', exception=e, extra_msg=msg,
+                                 extra_args=args)
             raise e
 
         return response.read()
