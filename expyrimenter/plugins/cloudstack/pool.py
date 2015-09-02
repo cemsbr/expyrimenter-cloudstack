@@ -6,8 +6,8 @@ class Pool:
     RUNNING = 'Running'
     STOPPED = 'Stopped'
 
-    def __init__(self):
-        self.hostnames = []
+    def __init__(self, hostnames=None):
+        self.hostnames = [] if hostnames is None else hostnames
         self._logger = ExpyLogger.getLogger('pool')
         self._cs = CloudStack()
         self._states = None  # hostname: state dict
