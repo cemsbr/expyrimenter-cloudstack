@@ -68,8 +68,9 @@ class Pool:
         :rtype: list of strings
         """
         start_us = self.stopped_vms[:amount]
-        self._cs.start(start_us)
+        for vm in start_us:
+            self._logger.info('starting ' + vm)
+            self._cs.start(vm)
+            self._cs.executor.wait()
         self._last_started = start_us
-        self._logger.info('starting %d VMs', amount)
-        self._cs.executor.wait()
         self.update()
