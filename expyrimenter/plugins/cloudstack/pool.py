@@ -28,7 +28,7 @@ class Pool:
             self._start_vms(to_start)
             running = self.running_vms
             assert len(running) == amount
-        return running
+        return running[:amount]
 
     def stop(self):
         self._cs.stop(self.running_vms)

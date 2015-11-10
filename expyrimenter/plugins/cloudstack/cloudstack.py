@@ -125,6 +125,7 @@ class CloudStack:
         f.set_args(*args, **kwargs)
         return self.executor.run(f)
 
+    # pylint: disable=unused-argument
     def _sm_task_done(self, future):
         with self._sm_lock:
             self._sm_tasks -= 1
