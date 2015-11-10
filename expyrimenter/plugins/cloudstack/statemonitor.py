@@ -16,7 +16,9 @@ class StateMonitor:
         self.title = '{} {}'.format(type(self).__name__, id(self))
         self._logger.start(self.title)
 
-    def monitor_states(self, interval=5):
+    def monitor_states(self, interval=None):
+        if interval is None:
+            interval = 5
         while not StateMonitor._stop:
             self._monitor_states_once()
             sleep(interval)
@@ -41,9 +43,9 @@ class StateMonitor:
         StateMonitor.stop()
 
     @staticmethod
-    def state_monitor_proc(states):
+    def state_monitor_proc(states, interval):
         sm = StateMonitor(states)
-        sm.monitor_states()
+        sm.monitor_states(interval)
 
 
 signal.signal(signal.SIGTERM, StateMonitor.handler)
@@ -54,13 +56,13 @@ class StateMonitorProcess:
     _mgr = _states = _process = None
 
     @classmethod
-    def start(cls):
+    def start(cls, interval=None):
         """Not thread-safe. Should be called from the same process/thread."""
         if cls._process is None:
             cls._mgr = Manager()
             cls._states = cls._mgr.dict()
             cls._process = Process(target=StateMonitor.state_monitor_proc,
-                                   args=(cls._states, ))
+                                   args=(cls._states, interval))
             cls._process.start()
 
     @classmethod

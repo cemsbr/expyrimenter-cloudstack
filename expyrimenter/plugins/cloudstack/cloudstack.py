@@ -56,24 +56,24 @@ class CloudStack:
         return CloudStack._id_cache[name]
 
     def start(self, *names):
-        names = self._ensure_list(names)
+        names = ensure_list(names)
         for vm in names:
             title = 'start VM ' + vm
             try:
                 vm_id = self.get_id(vm)
-                self._submit_sm_task(CloudStack.start_vm, title, vm, vm_id)
+                self._submit_sm_task(self.start_vm, title, vm, vm_id)
             except VMNotFound:
                 pass  # Already logged in get_id. Do not quit the loop.
 
     def stop(self, *names):
-        names = self._ensure_list(names)
+        names = ensure_list(names)
         for vm in names:
             title = 'stop VM ' + vm
             try:
                 vm_id = self.get_id(vm)
                 self._submit_task(CloudStack.stop_vm, title, vm_id)
             except VMNotFound:
-                pass  # Already logged in get_id. Do not quit the loop.
+                pass  # Already logged in get_id. Stop next VMs.
 
     def deploy_like(self, existent, new, **kwargs):
         params = self.get_deploy_params(existent)
@@ -95,7 +95,7 @@ class CloudStack:
         if kwargs:
             params.update(kwargs)
         vm = params['name']
-        self._submit_sm_task(CloudStack.deploy_vm, 'deploy VM ' + vm, params)
+        self._submit_sm_task(self.deploy_vm, 'deploy VM ' + vm, params)
 
     def load_id_cache(self):
         vms = self._list_vms()
@@ -113,10 +113,8 @@ class CloudStack:
         with self._sm_lock:
             self._sm_tasks += 1
             if self._sm_tasks == 1:
-                StateMonitorProcess.start()
+                StateMonitorProcess.start(interval=10)
 
-        states = StateMonitorProcess.get_states()
-        args += (states, )
         future = self._submit_task(fn, title, *args, **kwargs)
         future.add_done_callback(self._sm_task_done)
 
@@ -133,41 +131,35 @@ class CloudStack:
             if self._sm_tasks == 0:
                 StateMonitorProcess.stop()
 
-    def _ensure_list(s, args):
-        l = []
-        for arg in args:
-            if isinstance(arg, list):
-                l += arg
-            else:
-                l.append(arg)
-        return l
+    def start_vm(self, vm_id, vm):
+        self._api.startVirtualMachine(id=vm_id)
+        self.wait_ssh(vm)
 
-    @classmethod
-    def start_vm(cls, vm, vm_id, states):
-        api = API()
-        api.startVirtualMachine(id=vm_id)
-        cls.wait_ssh(vm, states)
+    def stop_vm(self, vm_id):
+        self._api.stopVirtualMachine(id=vm_id)
 
-    @staticmethod
-    def stop_vm(vm_id):
-        api = API()
-        api.stopVirtualMachine(id=vm_id)
-
-    @classmethod
-    def deploy_vm(cls, params, states):
-        api = API()
-        api.deployVirtualMachine(**params)
+    def deploy_vm(self, params):
+        self._api.deployVirtualMachine(**params)
         vm = params['name']
-        cls.wait_ssh(vm, states)
+        self.wait_ssh(vm)
 
-    @classmethod
-    def wait_ssh(cls, vm, states):
-        cls.wait_state(vm, 'Running', states)
-        SSH.await_availability(vm)
+    def wait_ssh(self, vm, interval=10):
+        self.wait_state(vm, 'Running', interval)
+        SSH.await_availability(vm, interval)
 
-    @staticmethod
-    def wait_state(vm, state, states, interval=5):
+    def wait_state(self, vm, state, interval):
+        states = StateMonitorProcess.get_states()
         while True:
             if state == states.get(vm):
                 break
             sleep(interval)
+
+
+def ensure_list(args):
+    l = []
+    for arg in args:
+        if isinstance(arg, list):
+            l += arg
+        else:
+            l.append(arg)
+    return l
