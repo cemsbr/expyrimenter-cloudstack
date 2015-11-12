@@ -26,6 +26,7 @@ class StateMonitor:
 
     @classmethod
     def stop(cls):
+        """This is called by Process.terminate()"""
         cls._stop = True
 
     def _monitor_states_once(self):

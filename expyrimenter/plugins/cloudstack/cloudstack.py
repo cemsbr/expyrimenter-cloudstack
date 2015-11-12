@@ -61,7 +61,7 @@ class CloudStack:
             title = 'start VM ' + vm
             try:
                 vm_id = self.get_id(vm)
-                self._submit_sm_task(self.start_vm, title, vm, vm_id)
+                self._submit_sm_task(self.start_vm, title, vm_id, vm)
             except VMNotFound:
                 pass  # Already logged in get_id. Do not quit the loop.
 
@@ -71,7 +71,7 @@ class CloudStack:
             title = 'stop VM ' + vm
             try:
                 vm_id = self.get_id(vm)
-                self._submit_task(CloudStack.stop_vm, title, vm_id)
+                self._submit_task(self.stop_vm, title, vm_id)
             except VMNotFound:
                 pass  # Already logged in get_id. Stop next VMs.
 
