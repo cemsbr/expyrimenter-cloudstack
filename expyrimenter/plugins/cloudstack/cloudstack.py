@@ -154,6 +154,10 @@ class CloudStack:
             if state == states.get(vm):
                 break
             sleep(interval)
+            if state == 'Running' and states.get(vm) == 'Stopped':
+                vm_id = self.get_id(vm)
+                self._logger.info('starting {} again'.format())
+                self._api.startVirtualMachine(id=vm_id)
 
 
 def ensure_list(args):
